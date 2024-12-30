@@ -1,0 +1,21 @@
+# Inference configuration for SlowFast model
+MODEL:
+  ARCH: "slowfast"                      # Model architecture
+  NUM_CLASSES: 10                       # Number of classes in the dataset
+  SLOWFAST:
+    ALPHA: 8
+    BETA_INV: 8
+    FAST_FRAME_RATE: 60
+    SLOW_FRAME_RATE: 8
+DATA:
+  TEST_DIR: "datasets/videos/test"      # Path to test videos
+  ANNOTATIONS: "datasets/annotations/test_annotations.json"
+  BATCH_SIZE: 1                         # Batch size for inference
+  NUM_WORKERS: 2                        # Data loader workers
+  INPUT:
+    MEAN: [0.45, 0.45, 0.45]
+    STD: [0.225, 0.225, 0.225]
+CHECKPOINT:
+  LOAD_PATH: "experiments/checkpoints/slowfast_epoch_50.pth"
+OUTPUT:
+  SAVE_DIR: "experiments/predictions"   # Directory to save inference outputs

@@ -1,0 +1,29 @@
+# Training configuration for SlowFast model
+MODEL:
+  ARCH: "slowfast"                      # Model architecture
+  NUM_CLASSES: 10                       # Number of classes in the dataset
+  SLOWFAST:
+    ALPHA: 8                            # Temporal stride between pathways
+    BETA_INV: 8                         # Channel reduction ratio
+    FAST_FRAME_RATE: 60                 # Frames per second (fast pathway)
+    SLOW_FRAME_RATE: 8                  # Frames per second (slow pathway)
+DATA:
+  TRAIN_DIR: "datasets/videos/train"    # Path to training videos
+  ANNOTATIONS: "datasets/annotations/train_annotations.srt"
+  BATCH_SIZE: 8                         # Batch size for training
+  NUM_WORKERS: 4                        # Number of data loader workers
+  INPUT:
+    MEAN: [0.45, 0.45, 0.45]            # Image normalization mean
+    STD: [0.225, 0.225, 0.225]          # Image normalization std deviation
+SOLVER:
+  BASE_LR: 0.01                         # Learning rate
+  MAX_EPOCHS: 50                        # Number of training epochs
+  LR_POLICY: "step"                     # Learning rate schedule
+  STEP_SIZE: 10                         # Decrease learning rate every X epochs
+  GAMMA: 0.1                            # LR decay rate
+CHECKPOINT:
+  SAVE_DIR: "experiments/checkpoints"   # Directory for saving checkpoints
+  RESUME: False                         # Resume training from a checkpoint
+LOGGING:
+  LOG_DIR: "experiments/logs"           # Logging directory
+  FREQUENCY: 10                         # Log training metrics every X iterations

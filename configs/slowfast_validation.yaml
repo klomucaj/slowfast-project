@@ -1,0 +1,22 @@
+# Validation configuration for SlowFast model
+MODEL:
+  ARCH: "slowfast"                      # Model architecture
+  NUM_CLASSES: 10                       # Number of classes in the dataset
+  SLOWFAST:
+    ALPHA: 8
+    BETA_INV: 8
+    FAST_FRAME_RATE: 60
+    SLOW_FRAME_RATE: 8
+DATA:
+  VAL_DIR: "datasets/videos/val"        # Path to validation videos
+  ANNOTATIONS: "datasets/annotations/val_annotations.json"
+  BATCH_SIZE: 8                         # Batch size for validation
+  NUM_WORKERS: 4                        # Data loader workers
+  INPUT:
+    MEAN: [0.45, 0.45, 0.45]
+    STD: [0.225, 0.225, 0.225]
+CHECKPOINT:
+  LOAD_PATH: "experiments/checkpoints/slowfast_epoch_50.pth"
+LOGGING:
+  LOG_DIR: "experiments/logs"
+  FREQUENCY: 10
