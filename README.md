@@ -58,14 +58,19 @@ Dataset Preparation
 1.	Place your video files in the datasets/videos/ directory:
 
 ○	Training videos: datasets/videos/train/
+
 ○	Validation videos: datasets/videos/val/
+
 ○	Testing videos: datasets/videos/test/
 
 2.	Add subtitle .srt files in datasets/annotations/:
 
 ○	Training: datasets/annotations/srt_train/
+
 ○	Validation: datasets/annotations/srt_val/
+
 ○	Testing: datasets/annotations/srt_test/
+
 3.	Use the script utils/generate_json_annotations.py to convert .srt files into JSON annotations:
 
 python utils/generate_json_annotations.py
