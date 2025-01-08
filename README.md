@@ -17,15 +17,22 @@ The SlowFast model is a video understanding framework that processes videos at b
 ________________________________________
 Features
 ●	Custom implementation of the SlowFast architecture.
+
 ●	Support for .srt file annotations for video processing.
+
 ●	Modular design for datasets, models, and utilities.
+
 ●	Scripts for training, validation, and testing.
 ________________________________________
 Requirements
 Before starting, ensure the following are installed:
+
 ●	Python >= 3.8
+
 ●	pip >= 20.0
+
 ●	ffmpeg (for video processing)
+
 Install the required Python libraries using:
 pip install -r requirements.txt
 
