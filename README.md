@@ -31,6 +31,7 @@ pip install -r requirements.txt
 
 ________________________________________
 Installation
+
 Step 1: Clone the Repository
 git clone https://github.com/klomucaj/slowfast-project.git
 cd slowfast-project
@@ -43,10 +44,12 @@ source slowfast_env/bin/activate  # For Linux/Mac
 slowfast_env\Scripts\activate    # For Windows
 
 Using conda:
+
 conda create --name slowfast_env python=3.8
 conda activate slowfast_env
 
 Step 3: Install Dependencies
+
 Install the required Python libraries:
 pip install -r requirements.txt
 
@@ -87,5 +90,6 @@ python test.py --config configs/slowfast_inference.yaml
 ________________________________________
 
 Acknowledgements
+
 This project builds upon the principles outlined in the SlowFast repository by Facebook Research.
 ________________________________________
