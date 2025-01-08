@@ -87,16 +87,23 @@ python datasets/split_dataset.py
 
 ________________________________________
 Usage
+
 Training
+
 Run the main training script:
+
 python train.py --config configs/slowfast_training.yaml
 
 Validation
+
 Evaluate the model:
+
 python validate.py --config configs/slowfast_validation.yaml
 
 Testing/Inference
+
 Perform inference on test data:
+
 python test.py --config configs/slowfast_inference.yaml
 
 ________________________________________
