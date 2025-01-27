@@ -1,0 +1,34 @@
+# Inference configuration for SlowFast model
+MODEL:
+  ARCH: "slowfast"                      # Model architecture
+  NUM_CLASSES: 10                       # Number of classes in the dataset
+  SLOWFAST:
+    ALPHA: 8                            # Alpha for SlowFast
+    BETA_INV: 8                         # Beta inverse for SlowFast
+    FAST_FRAME_RATE: 1                  # Frames per second for the Fast pathway
+    SLOW_FRAME_RATE: 1                  # Frames per second for the Slow pathway
+
+DATA:
+  TEST_DIR: "datasets/videos/test"      # Path to test videos
+  ANNOTATIONS: "datasets/annotations/json_test"
+  BATCH_SIZE: 1                         # Batch size for inference
+  NUM_WORKERS: 2                        # Data loader workers
+  INPUT:
+    NUM_FRAMES: 32                      # Number of frames sampled per video
+    RESIZE: 256                         # Resize input to this size
+    CROP_SIZE: 224                      # Final cropped size for inference input
+    MEAN: [0.45, 0.45, 0.45]            # Normalization mean
+    STD: [0.225, 0.225, 0.225]          # Normalization standard deviation
+
+CHECKPOINT:
+  LOAD_PATH: "experiments/checkpoints/slowfast_epoch_50.pth"  # Path to the checkpoint to use for inference
+
+OUTPUT:
+  SAVE_DIR: "experiments/predictions"   # Directory to save inference outputs
+  FORMAT: "json"                        # Output format for predictions
+  SAVE_FREQUENCY: 1                     # Save predictions for every video
+
+LOGGING:
+  ENABLE: True                          # Enable logging during inference
+  LOG_DIR: "experiments/logs/inference" # Directory to save inference logs
+  FREQUENCY: 10                         # Logging frequency (in steps)
