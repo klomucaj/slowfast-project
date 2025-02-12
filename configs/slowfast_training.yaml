@@ -1,0 +1,45 @@
+# Training configuration for SlowFast model
+MODEL:
+  ARCH: "slowfast"                       # Model architecture
+  NUM_CLASSES: 10                        # Number of classes in the dataset
+  SLOWFAST:
+    ALPHA: 8                             # Alpha for SlowFast
+    BETA_INV: 8                          # Beta inverse for SlowFast
+    FAST_FRAME_RATE: 60                   # Frames per second for the Fast pathway
+    SLOW_FRAME_RATE: 8                   # Frames per second for the Slow pathway
+
+DATA:
+  TRAIN_DIR: "datasets/videos/train"     # Path to training videos
+  VAL_DIR: "datasets/videos/val"         # Path to validation videos
+  ANNOTATIONS_DIR: "datasets/annotations"  # Path to annotation files
+  TRAIN_ANNOTATIONS: "datasets/annotations/json_train"
+  VAL_ANNOTATIONS: "datasets/annotations/json_val"
+  BATCH_SIZE: 8                          # Batch size for training
+  NUM_WORKERS: 4                         # Data loader workers
+  INPUT:
+    NUM_FRAMES: 32                       # Number of frames sampled per video
+    RESIZE: 256                          # Resize input to this size
+    CROP_SIZE: 224                       # Final cropped size for training input
+    MEAN: [0.45, 0.45, 0.45]             # Normalization mean
+    STD: [0.225, 0.225, 0.225]           # Normalization standard deviation
+
+CHECKPOINT:
+  SAVE_DIR: "experiments/checkpoints"    # Directory to save checkpoints
+  RESUME: False                          # Resume training from the checkpoint
+  FREQUENCY: 1                           # Save checkpoint after every epoch
+
+SOLVER:
+  OPTIMIZER: "adam"                      # Optimizer for training
+  BASE_LR: 0.001                         # Base learning rate
+  LR_POLICY: "cosine"                    # Learning rate policy
+  MAX_EPOCH: 50                          # Maximum epochs for training
+  WEIGHT_DECAY: 0.0005                   # Weight decay
+
+LOGGING:
+  LOG_DIR: "experiments/logs/train"      # Directory for training logs
+  FREQUENCY: 10                          # Logging frequency (in steps)
+
+EVALUATION:
+  ENABLE: True                           # Evaluate model during training
+  EVAL_FREQUENCY: 5                      # Evaluate every 5 epochs
+  METRICS: ["accuracy", "f1", "mAP"]     # Metrics to log during evaluation
