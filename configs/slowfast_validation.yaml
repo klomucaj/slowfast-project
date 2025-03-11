@@ -11,7 +11,7 @@ DATA:
   VAL_DIR: "datasets/videos/val"        # Path to validation videos
   ANNOTATIONS: "datasets/annotations/val_annotations.json"
   BATCH_SIZE: 8                         # Batch size for validation
-  NUM_WORKERS: 4                        # Data loader workers
+  NUM_WORKERS: 0                        # Data loader workers
   INPUT:
     MEAN: [0.45, 0.45, 0.45]
     STD: [0.225, 0.225, 0.225]
