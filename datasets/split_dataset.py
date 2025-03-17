@@ -92,9 +92,9 @@ class VideoAnnotationSplitter:
         self.split_annotations()
 
         # Print Summary
-        print("\n✅ Dataset splitting completed successfully!")
-        print(f"🎥 Total Videos: {len(video_files)} → Train: {len(video_splits['train'])}, Val: {len(video_splits['val'])}, Test: {len(video_splits['test'])}")
-        print(f"📝 Annotations split based on videos inside each folder.")
+        print("\n Dataset splitting completed successfully!")
+        print(f" Total Videos: {len(video_files)} → Train: {len(video_splits['train'])}, Val: {len(video_splits['val'])}, Test: {len(video_splits['test'])}")
+        print(f" Annotations split based on videos inside each folder.")
 
 # Main execution
 if __name__ == "__main__":

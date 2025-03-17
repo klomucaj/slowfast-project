@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from models.backbone import SlowPathway, FastPathway
-from models.lateral_connections import LateralConnections
+from datasets.models.backbone import SlowPathway, FastPathway
+from datasets.models.lateral_connections import LateralConnections
 
 class SlowFastModel(nn.Module):
     """

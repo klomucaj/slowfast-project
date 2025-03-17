@@ -22,10 +22,10 @@ for folder in json_folders.values():
 def validate_folder(folder_path):
     """Check if the folder exists and is a valid directory."""
     if not os.path.exists(folder_path):
-        print(f"❌ Error: Folder {folder_path} does not exist.")
+        print(f" Error: Folder {folder_path} does not exist.")
         return False
     if not os.path.isdir(folder_path):
-        print(f"❌ Error: {folder_path} is not a valid directory.")
+        print(f" Error: {folder_path} is not a valid directory.")
         return False
     return True
 
@@ -38,7 +38,7 @@ def fix_permissions(json_folder):
             try:
                 os.chmod(file_path, 0o777)  # Full permissions
             except Exception as e:
-                print(f"⚠️ Warning: Failed to change permissions for {file_path}: {e}")
+                print(f" Warning: Failed to change permissions for {file_path}: {e}")
 
 # Function to parse an SRT file into a structured JSON format
 def parse_srt(srt_file):
@@ -49,7 +49,7 @@ def parse_srt(srt_file):
         with open(srt_file, "r", encoding="utf-8") as file:
             lines = file.readlines()
     except Exception as e:
-        print(f"❌ Error reading {srt_file}: {e}")
+        print(f" Error reading {srt_file}: {e}")
         return []
 
     entry = {}
@@ -91,13 +91,13 @@ def convert_srt_to_json(input_folder, output_folder):
             try:
                 with open(json_file, "w", encoding="utf-8") as json_out:
                     json.dump(annotations, json_out, indent=4, ensure_ascii=False)
-                print(f"✅ Successfully converted: {srt_file} → {json_file}")
+                print(f" Successfully converted: {srt_file} → {json_file}")
             except Exception as e:
-                print(f"❌ Error writing {json_file}: {e}")
+                print(f" Error writing {json_file}: {e}")
 
 # Process SRT files and generate JSON annotations for train, val, and test
 for split in ["train", "val", "test"]:
     convert_srt_to_json(srt_folders[split], json_folders[split])
     fix_permissions(json_folders[split])
 
-print("🚀 JSON annotation generation completed successfully!")
+print(" JSON annotation generation completed successfully!")

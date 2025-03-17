@@ -17,57 +17,75 @@ class FrameDataset(Dataset):
         self.annotation_dir = annotation_dir
         self.transform = transform if transform else self.default_transform()
 
-        # 🔹 Get list of all video folders inside frame directory
-        self.video_folders = sorted(os.listdir(self.frame_root_dir))
+        # ✅ Check if directories exist
+        if not os.path.exists(self.frame_root_dir):
+            raise ValueError(f"❌ Error: Frame directory not found: {self.frame_root_dir}")
+        if not os.path.exists(self.annotation_dir):
+            raise ValueError(f"❌ Error: Annotation directory not found: {self.annotation_dir}")
 
-        # 🔹 Load annotation files and create a mapping (video_name -> JSON file)
+        # ✅ Load annotation files and create a mapping (video_name -> JSON file)
         self.annotations = {}
         for json_file in os.listdir(self.annotation_dir):
             if json_file.endswith(".json"):
                 video_name = json_file.replace(".json", "")
                 self.annotations[video_name] = os.path.join(self.annotation_dir, json_file)
 
-        # 🔹 Keep only frame folders that have a matching JSON annotation
+        # ✅ Identify valid videos
         self.valid_videos = []
-        for video_folder in self.video_folders:
-            if video_folder in self.annotations:
-                frame_dir = os.path.join(self.frame_root_dir, video_folder)
-                frame_files = [f for f in os.listdir(frame_dir) if f.endswith((".jpg", ".png"))]
-                
-                # Ensure there are frames in the folder
-                if len(frame_files) > 0:
-                    self.valid_videos.append(video_folder)
-                else:
-                    print(f"Warning: {video_folder} has a matching annotation but no frames, skipping!")
+        for video_name, annotation_path in self.annotations.items():
+            frame_dir = os.path.join(self.frame_root_dir, video_name)
 
-        # Log missing annotations
-        missing_annotations = set(self.video_folders) - set(self.annotations.keys())
-        if missing_annotations:
-            print(f"Warning: {len(missing_annotations)} frame directories have no matching annotation and will be skipped.")
+            # ✅ Ensure frame directory exists
+            if not os.path.exists(frame_dir):
+                print(f"⚠ Warning: No frame directory found for {video_name}, skipping!")
+                continue
 
-        # 🔹 If dataset is empty, raise an error early
+            # ✅ Load JSON annotation
+            with open(annotation_path, "r") as f:
+                annotation_data = json.load(f)
+
+            frame_list = annotation_data.get("frames", [])
+            label = annotation_data.get("label", None)
+
+            # ✅ Validate annotation contents
+            if not frame_list:
+                print(f"⚠ Warning: No frames listed in annotation for {video_name}, skipping!")
+                continue
+            if label is None:
+                print(f"⚠ Warning: Missing label for {video_name}, skipping!")
+                continue
+
+            # ✅ Check if frames exist
+            valid_frames = [f for f in frame_list if os.path.exists(os.path.join(frame_dir, f))]
+            if not valid_frames:
+                print(f"⚠ Warning: No valid frames found for {video_name}, skipping!")
+                continue
+
+            self.valid_videos.append((video_name, valid_frames, label))
+
+        # ✅ If dataset is empty, raise an error early
         if len(self.valid_videos) == 0:
-            raise ValueError("Error: No valid training samples found! Check dataset directories.")
+            raise ValueError("❌ Error: No valid training samples found! Check dataset directories.")
 
     def __getitem__(self, idx):
-        video_folder = self.valid_videos[idx]
-        annotation_path = self.annotations[video_folder]
+        video_name, frame_list, label = self.valid_videos[idx]
+        frame_dir = os.path.join(self.frame_root_dir, video_name)
 
-        # 🔹 Load frames from the corresponding video folder
-        frame_dir = os.path.join(self.frame_root_dir, video_folder)
-        frame_paths = sorted(
-            [os.path.join(frame_dir, f) for f in os.listdir(frame_dir) if f.endswith((".jpg", ".png"))]
-        )
+        # ✅ Load and transform frames
+        frames = []
+        for frame_file in frame_list:
+            frame_path = os.path.join(frame_dir, frame_file)
+            try:
+                image = Image.open(frame_path).convert("RGB")
+                frames.append(self.transform(image))
+            except Exception as e:
+                print(f"⚠ Warning: Failed to load frame {frame_path}: {e}")
+                continue
 
-        # 🔹 Load all frames and apply transforms
-        frames = [self.transform(Image.open(frame)) for frame in frame_paths]
+        if not frames:
+            raise ValueError(f"❌ Error: No valid frames could be loaded for {video_name}!")
+
         frames = torch.stack(frames)  # Shape: (T, C, H, W)
-
-        # 🔹 Load JSON annotation
-        with open(annotation_path, "r") as f:
-            annotation_data = json.load(f)
-
-        label = annotation_data["label"]  # Adjust based on JSON format
 
         return frames, label
 

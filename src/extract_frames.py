@@ -1,74 +1,135 @@
 import os
 import cv2
-from tqdm import tqdm
+import json
 
-# Paths to video folders
-VIDEO_DIRS = {
-    'train': "datasets/videos/train_videos",
-    'val': "datasets/videos/val_videos",
-    'test': "datasets/videos/test_videos"
-}
+class ExtractFrames:
+    def __init__(self, video_base, annotation_base, output_base, frame_rate=1):
+        self.video_dirs = {
+            "train": os.path.join(video_base, "train_videos"),
+            "val": os.path.join(video_base, "val_videos"),
+            "test": os.path.join(video_base, "test_videos"),
+        }
+        
+        self.annotation_dirs = {
+            "train": os.path.join(annotation_base, "srt_train"),
+            "val": os.path.join(annotation_base, "srt_val"),
+            "test": os.path.join(annotation_base, "srt_test"),
+        }
+        
+        self.output_dirs = {
+            "train": os.path.join(output_base, "train_frames"),
+            "val": os.path.join(output_base, "val_frames"),
+            "test": os.path.join(output_base, "test_frames"),
+        }
+        
+        self.frame_rate = frame_rate  # Extract 1 frame per second
+        
+        # Ensure output directories exist
+        for split in self.output_dirs.values():
+            os.makedirs(split, exist_ok=True)
 
-# Target folder for extracted frames
-FRAME_DIR = "datasets/frames"
+    def get_annotation_file(self, video_name, split):
+        """Finds the matching annotation file based on S1, S2, S3, S4 in the filename."""
+        annotation_folder = self.annotation_dirs[split]
+        possible_annotations = os.listdir(annotation_folder)
+        
+        for annotation in possible_annotations:
+            if any(marker in video_name for marker in ["S1", "S2", "S3", "S4"]):
+                if marker in annotation: # type: ignore
+                    return os.path.join(annotation_folder, annotation)
+        
+        return None  # No matching annotation found
 
+    def parse_annotations(self, annotation_path):
+        """Parses an SRT-like annotation file into a structured list."""
+        annotations = []
+        with open(annotation_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
 
-# Frame extraction settings
-FPS = 1  # Extract 1 frame per second
+        for i in range(0, len(lines), 4):  # Assuming each block has 4 lines
+            if i + 2 < len(lines):
+                timestamp = lines[i + 1].strip()  # e.g., "00:04:21,231 --> 00:04:22,531"
+                label = lines[i + 2].strip()  # e.g., "316 - Door1"
+                annotations.append({"timestamp": timestamp, "label": label})
 
-def ensure_dir(directory):
-    """Create directory if it doesn't exist."""
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+        return annotations
 
-def extract_frames(video_path, output_folder, fps=1):
-    """
-    Extract frames from a video at 1 FPS and save them in the output folder.
-    """
-    cap = cv2.VideoCapture(video_path)
-    video_name = os.path.basename(video_path).split('.')[0]
-    frame_count = 0
-    sec = 0  # Start at 0 seconds
+    def extract_frames(self):
+        """Extract frames from videos and match them with annotations."""
+        for split, video_folder in self.video_dirs.items():
+            output_folder = self.output_dirs[split]
+            
+            if not os.path.exists(video_folder):
+                print(f" Skipping {video_folder}, folder does not exist.")
+                continue
 
-    if not cap.isOpened():
-        print(f"Error opening video file: {video_path}")
-        return
+            for video_file in sorted(os.listdir(video_folder)):
+                if not video_file.endswith((".mp4", ".avi", ".mov")):
+                    continue
+                
+                video_path = os.path.join(video_folder, video_file)
+                annotation_path = self.get_annotation_file(video_file, split)
+                
+                if annotation_path:
+                    annotations = self.parse_annotations(annotation_path)
+                    print(f" Processing: {video_file} |  Annotation: {os.path.basename(annotation_path)}")
+                else:
+                    print(f" No annotation found for {video_file}, skipping.")
+                    continue
 
-    frame_rate = cap.get(cv2.CAP_PROP_FPS)  # Get original FPS of video
-    interval = int(frame_rate) if frame_rate > 0 else 1  # Capture every second
+                # Extract frames and match with annotations
+                self.process_video(video_path, output_folder, video_file, annotations)
 
-    while cap.isOpened():
-        cap.set(cv2.CAP_PROP_POS_MSEC, sec * 1000)  # Move to the next second
-        ret, frame = cap.read()
+    def process_video(self, video_path, output_folder, video_name, annotations):
+        """Extracts frames from a video and assigns them corresponding annotation texts."""
+        cap = cv2.VideoCapture(video_path)
+        fps = int(cap.get(cv2.CAP_PROP_FPS))
+        frame_interval = max(1, fps // self.frame_rate)
+        frame_count = 0
+        saved_frames = 0
 
-        if not ret:
-            break  # Stop when the video ends
+        video_output_dir = os.path.join(output_folder, video_name.rsplit(".", 1)[0])
+        os.makedirs(video_output_dir, exist_ok=True)
 
-        frame_filename = f"{video_name}_frame_{frame_count:04d}.jpg"
-        frame_path = os.path.join(output_folder, frame_filename)
-        cv2.imwrite(frame_path, frame)
-        frame_count += 1
-        sec += 1  # Move to next second
+        annotation_idx = 0  # Keep track of annotation sequence
 
-    cap.release()
-    print(f"Extracted {frame_count} frames from {video_name}")
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break  # Stop if the video ends
 
-def process_videos():
-    """
-    Extract frames from videos in train, val, and test folders
-    and store them in corresponding frame directories.
-    """
-    for split, video_folder in VIDEO_DIRS.items():
-        output_dir = os.path.join(FRAME_DIR, split)
-        ensure_dir(output_dir)
+            if frame_count % frame_interval == 0 and annotation_idx < len(annotations):
+                # Assign annotation text to this frame
+                annotation_text = annotations[annotation_idx]["label"]
+                
+                # Save frame
+                frame_filename = os.path.join(video_output_dir, f"frame_{saved_frames:05d}.jpg")
+                cv2.imwrite(frame_filename, frame)
 
-        videos = [v for v in os.listdir(video_folder) if v.endswith(('.mp4', '.avi', '.mov'))]
+                # Save metadata in JSON
+                json_filename = frame_filename.replace(".jpg", ".json")
+                metadata = {
+                    "video": video_name,
+                    "frame_number": saved_frames,
+                    "annotation": annotation_text
+                }
 
-        for video in tqdm(videos, desc=f"Processing {split} videos"):
-            video_path = os.path.join(video_folder, video)
-            extract_frames(video_path, output_dir, FPS)
+                with open(json_filename, "w", encoding="utf-8") as json_file:
+                    json.dump(metadata, json_file, indent=4)
 
+                saved_frames += 1
+                annotation_idx += 1  # Move to the next annotation
+
+            frame_count += 1
+
+        cap.release()
+        print(f" Extracted {saved_frames} frames from {video_name}")
+
+# Main execution
 if __name__ == "__main__":
-    print("🚀 Starting frame extraction from videos...")
-    process_videos()
-    print("🎉 Frame extraction complete!")
+    video_base = "datasets/videos"
+    annotation_base = "datasets/annotations"
+    output_base = "datasets/frames"
+
+    frame_extractor = ExtractFrames(video_base, annotation_base, output_base, frame_rate=1)
+    frame_extractor.extract_frames()
