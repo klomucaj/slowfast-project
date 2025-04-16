@@ -2,99 +2,80 @@ import os
 import json
 import torch
 from torch.utils.data import Dataset
-from torchvision import transforms
-from PIL import Image
+from torchvision.io import read_image
+from torchvision.transforms import Compose, Resize, CenterCrop, Normalize
 
 class FrameDataset(Dataset):
-    def __init__(self, frame_root_dir, annotation_dir, transform=None):
-        """
-        Args:
-            frame_root_dir (str): Path to the directory containing extracted frames.
-            annotation_dir (str): Path to the directory containing JSON annotations.
-            transform (callable, optional): Optional transform to be applied to frames.
-        """
-        self.frame_root_dir = frame_root_dir
-        self.annotation_dir = annotation_dir
-        self.transform = transform if transform else self.default_transform()
+    def __init__(self, frame_root, annotation_root, num_frames=32, transform=None):
+        self.frame_root = frame_root
+        self.annotation_root = annotation_root
+        self.num_frames = num_frames
 
-        # ✅ Check if directories exist
-        if not os.path.exists(self.frame_root_dir):
-            raise ValueError(f"❌ Error: Frame directory not found: {self.frame_root_dir}")
-        if not os.path.exists(self.annotation_dir):
-            raise ValueError(f"❌ Error: Annotation directory not found: {self.annotation_dir}")
+        # Default transform pipeline — note: no ToTensor()
+        self.transform = transform if transform else Compose([
+            Resize(256),
+            CenterCrop(224),
+            Normalize(mean=[0.45, 0.45, 0.45], std=[0.225, 0.225, 0.225])
+        ])
 
-        # ✅ Load annotation files and create a mapping (video_name -> JSON file)
-        self.annotations = {}
-        for json_file in os.listdir(self.annotation_dir):
-            if json_file.endswith(".json"):
-                video_name = json_file.replace(".json", "")
-                self.annotations[video_name] = os.path.join(self.annotation_dir, json_file)
+        self.samples = self._load_samples()
+        if not self.samples:
+            raise ValueError(" Error: No valid training samples found! Check dataset directories.")
 
-        # ✅ Identify valid videos
-        self.valid_videos = []
-        for video_name, annotation_path in self.annotations.items():
-            frame_dir = os.path.join(self.frame_root_dir, video_name)
-
-            # ✅ Ensure frame directory exists
-            if not os.path.exists(frame_dir):
-                print(f"⚠ Warning: No frame directory found for {video_name}, skipping!")
+    def _load_samples(self):
+        samples = []
+        for fname in os.listdir(self.annotation_root):
+            if not fname.endswith(".json"):
                 continue
+            path = os.path.join(self.annotation_root, fname)
+            with open(path, "r") as f:
+                ann_list = json.load(f)
 
-            # ✅ Load JSON annotation
-            with open(annotation_path, "r") as f:
-                annotation_data = json.load(f)
+            for ann in ann_list:
+                video = ann["video"]
+                start = ann["start_frame"]
+                end = ann["end_frame"]
+                label = ann["label"]
 
-            frame_list = annotation_data.get("frames", [])
-            label = annotation_data.get("label", None)
-
-            # ✅ Validate annotation contents
-            if not frame_list:
-                print(f"⚠ Warning: No frames listed in annotation for {video_name}, skipping!")
-                continue
-            if label is None:
-                print(f"⚠ Warning: Missing label for {video_name}, skipping!")
-                continue
-
-            # ✅ Check if frames exist
-            valid_frames = [f for f in frame_list if os.path.exists(os.path.join(frame_dir, f))]
-            if not valid_frames:
-                print(f"⚠ Warning: No valid frames found for {video_name}, skipping!")
-                continue
-
-            self.valid_videos.append((video_name, valid_frames, label))
-
-        # ✅ If dataset is empty, raise an error early
-        if len(self.valid_videos) == 0:
-            raise ValueError("❌ Error: No valid training samples found! Check dataset directories.")
-
-    def __getitem__(self, idx):
-        video_name, frame_list, label = self.valid_videos[idx]
-        frame_dir = os.path.join(self.frame_root_dir, video_name)
-
-        # ✅ Load and transform frames
-        frames = []
-        for frame_file in frame_list:
-            frame_path = os.path.join(frame_dir, frame_file)
-            try:
-                image = Image.open(frame_path).convert("RGB")
-                frames.append(self.transform(image))
-            except Exception as e:
-                print(f"⚠ Warning: Failed to load frame {frame_path}: {e}")
-                continue
-
-        if not frames:
-            raise ValueError(f"❌ Error: No valid frames could be loaded for {video_name}!")
-
-        frames = torch.stack(frames)  # Shape: (T, C, H, W)
-
-        return frames, label
+                if (end - start + 1) >= self.num_frames:
+                    samples.append({
+                        "video": video,
+                        "start": start,
+                        "end": end,
+                        "label": label
+                    })
+        return samples
 
     def __len__(self):
-        return len(self.valid_videos)
+        return len(self.samples)
 
-    def default_transform(self):
-        return transforms.Compose([
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.45, 0.45, 0.45], std=[0.225, 0.225, 0.225])
-        ])
+    def __getitem__(self, idx):
+        item = self.samples[idx]
+        frame_dir = os.path.join(self.frame_root, item["video"])
+        frame_files = sorted(os.listdir(frame_dir))
+
+        # Clip sampling
+        start = item["start"]
+        end = item["end"]
+        mid = (start + end) // 2
+        half = self.num_frames // 2
+        clip_start = max(0, mid - half)
+        clip_end = clip_start + self.num_frames
+
+        if clip_end > len(frame_files):
+            clip_end = len(frame_files)
+            clip_start = max(0, clip_end - self.num_frames)
+
+        selected_frames = frame_files[clip_start:clip_end]
+
+        frames = []
+        for frame_name in selected_frames:
+            img_path = os.path.join(frame_dir, frame_name)
+            img = read_image(img_path).float() / 255.0  # Already a torch.Tensor in [0,1]
+            img = self.transform(img)
+            frames.append(img)
+
+        video_tensor = torch.stack(frames)  # Shape: [T, C, H, W]
+        label_tensor = torch.tensor(item["label"])
+
+        return video_tensor, label_tensor

@@ -1,22 +1,24 @@
-# Validation configuration for SlowFast model
 MODEL:
-  ARCH: "slowfast"                      # Model architecture
-  NUM_CLASSES: 10                       # Number of classes in the dataset
+  ARCH: "slowfast"                       # Model architecture
+  NUM_CLASSES: 10                        # Number of classes in the dataset
   SLOWFAST:
-    ALPHA: 8
-    BETA_INV: 8
-    FAST_FRAME_RATE: 60
-    SLOW_FRAME_RATE: 8
+    ALPHA: 8                             # Alpha for SlowFast
+    BETA_INV: 8                          # Beta inverse for SlowFast
+    FAST_FRAME_RATE: 1                    # Frames per second for the Fast pathway (1fps)
+    SLOW_FRAME_RATE: 1                    # Frames per second for the Slow pathway (1fps)
+
 DATA:
-  VAL_DIR: "datasets/videos/val"        # Path to validation videos
-  ANNOTATIONS: "datasets/annotations/val_annotations.json"
-  BATCH_SIZE: 8                         # Batch size for validation
-  NUM_WORKERS: 0                        # Data loader workers
+  VAL_DIR: "datasets/frames/val_videos"
+  VAL_ANNOTATIONS: "datasets/annotations/json_val"
+  BATCH_SIZE: 4                          # Batch size for validation (same as training)
+  NUM_WORKERS: 2                         # Data loader workers
   INPUT:
-    MEAN: [0.45, 0.45, 0.45]
-    STD: [0.225, 0.225, 0.225]
+    MEAN: [0.45, 0.45, 0.45]             # Normalization mean
+    STD: [0.225, 0.225, 0.225]           # Normalization standard deviation
+
 CHECKPOINT:
-  LOAD_PATH: "experiments/checkpoints/slowfast_epoch_50.pth"
+  LOAD_PATH: "experiments/checkpoints/slowfast_epoch_50.pth"  # Load the checkpoint for validation
+
 LOGGING:
-  LOG_DIR: "experiments/logs"
-  FREQUENCY: 10
+  LOG_DIR: "experiments/logs"           # Directory for validation logs
+  FREQUENCY: 10                          # Logging frequency (in steps)

@@ -1,20 +1,20 @@
-# Training configuration for SlowFast model
 MODEL:
   ARCH: "slowfast"                       # Model architecture
   NUM_CLASSES: 10                        # Number of classes in the dataset
   SLOWFAST:
     ALPHA: 8                             # Alpha for SlowFast
     BETA_INV: 8                          # Beta inverse for SlowFast
-    FAST_FRAME_RATE: 60                   # Frames per second for the Fast pathway
-    SLOW_FRAME_RATE: 8                   # Frames per second for the Slow pathway
+    FAST_FRAME_RATE: 1                    # Frames per second for the Fast pathway (1fps)
+    SLOW_FRAME_RATE: 1                    # Frames per second for the Slow pathway (1fps)
 
 DATA:
-  TRAIN_DIR: "datasets/frames/train"     # Path to training videos
-  VAL_DIR: "datasets/frames/val"         # Path to validation videos
+  TRAIN_DIR: "datasets/frames/train_videos"     
+  VAL_DIR: "datasets/frames/val_videos"
+  TEST_DIR: "datasets/frames/test_videos"         
   ANNOTATIONS_DIR: "datasets/annotations"  # Path to annotation files
   TRAIN_ANNOTATIONS: "datasets/annotations/json_train"
   VAL_ANNOTATIONS: "datasets/annotations/json_val"
-  BATCH_SIZE: 8                          # Batch size for training
+  BATCH_SIZE: 4                          # Batch size for training (reduced for smaller dataset)
   NUM_WORKERS: 0                         # Data loader workers
   INPUT:
     NUM_FRAMES: 32                       # Number of frames sampled per video
@@ -32,7 +32,7 @@ SOLVER:
   OPTIMIZER: "adam"                      # Optimizer for training
   BASE_LR: 0.001                         # Base learning rate
   LR_POLICY: "cosine"                    # Learning rate policy
-  MAX_EPOCH: 50                          # Maximum epochs for training
+  MAX_EPOCH: 1                         # Maximum epochs for training (adjusted for small dataset)
   WEIGHT_DECAY: 0.0001                   # Weight decay
 
 LOGGING:
