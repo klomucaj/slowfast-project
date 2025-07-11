@@ -4,7 +4,7 @@ import random
 
 # === CONFIG ===
 VIDEO_DIR = "datasets/videos/videosGroup"
-SRT_DIR = SRT_DIR = "datasets/annotations/srt_merged"
+SRT_DIR = "datasets/annotations/srt_merged"
 OUTPUT_VIDEO_DIR = "datasets/videos"
 OUTPUT_SRT_DIR = "datasets/annotations"
 
@@ -48,14 +48,14 @@ def split_dataset():
             video_dst = os.path.join(split_video_dir, filename)
             shutil.copy(video_src, video_dst)
 
-            # # Copy SRT (if exists)
-            # srt_file = f"{basename}.srt"
-            # srt_src = os.path.join(SRT_DIR, srt_file)
-            # srt_dst = os.path.join(split_srt_dir, srt_file)
-            # if os.path.exists(srt_src):
-            #     shutil.copy(srt_src, srt_dst)
-            # else:
-            #     print(f"  Warning: No matching .srt found for {filename}")
+            # Copy SRT (if exists)
+            srt_file = f"{basename}.srt"
+            srt_src = os.path.join(SRT_DIR, srt_file)
+            srt_dst = os.path.join(split_srt_dir, srt_file)
+            if os.path.exists(srt_src):
+                shutil.copy(srt_src, srt_dst)
+            else:
+                print(f"  Warning: No matching .srt found for {filename}")
 
         print(f" Split '{split}': {len(files)} videos → {split_video_dir}, {split_srt_dir}")
 

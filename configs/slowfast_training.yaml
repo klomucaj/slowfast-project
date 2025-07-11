@@ -1,9 +1,9 @@
 MODEL:
   ARCH: "slowfast"                       # Model architecture
-  NUM_CLASSES: 10                        # Number of classes in the dataset
+  NUM_CLASSES: 16                        # Number of classes in the dataset
   SLOWFAST:
-    ALPHA: 8                             # Alpha for SlowFast
-    BETA_INV: 8                          # Beta inverse for SlowFast
+    ALPHA: 4                             # Alpha for SlowFast
+    BETA_INV: 4                          # Beta inverse for SlowFast
     FAST_FRAME_RATE: 1                    # Frames per second for the Fast pathway (1fps)
     SLOW_FRAME_RATE: 1                    # Frames per second for the Slow pathway (1fps)
 
@@ -14,7 +14,7 @@ DATA:
   ANNOTATIONS_DIR: "datasets/annotations"  # Path to annotation files
   TRAIN_ANNOTATIONS: "datasets/annotations/json_train"
   VAL_ANNOTATIONS: "datasets/annotations/json_val"
-  BATCH_SIZE: 4                          # Batch size for training (reduced for smaller dataset)
+  BATCH_SIZE: 2                          # Batch size for training (reduced for smaller dataset)
   NUM_WORKERS: 0                         # Data loader workers
   INPUT:
     NUM_FRAMES: 32                       # Number of frames sampled per video
@@ -30,14 +30,14 @@ CHECKPOINT:
 
 SOLVER:
   OPTIMIZER: "adam"                      # Optimizer for training
-  BASE_LR: 0.001                         # Base learning rate
+  BASE_LR: 0.0001                         # Base learning rate
   LR_POLICY: "cosine"                    # Learning rate policy
-  MAX_EPOCH: 1                         # Maximum epochs for training (adjusted for small dataset)
-  WEIGHT_DECAY: 0.0001                   # Weight decay
+  MAX_EPOCH: 30                   # Maximum epochs for training (adjusted for small dataset)
+  WEIGHT_DECAY: 0.0005                   # Weight decay
 
 LOGGING:
   LOG_DIR: "experiments/logs/train"      # Directory for training logs
-  FREQUENCY: 10                          # Logging frequency (in steps)
+  FREQUENCY: 20                          # Logging frequency (in steps)
 
 EVALUATION:
   ENABLE: True                           # Evaluate model during training

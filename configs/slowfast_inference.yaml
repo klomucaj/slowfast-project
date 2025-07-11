@@ -1,6 +1,6 @@
 MODEL:
   ARCH: "slowfast"                       # Model architecture
-  NUM_CLASSES: 10                        # Number of classes in the dataset
+  NUM_CLASSES: 16                        # Number of classes in the dataset
   SLOWFAST:
     ALPHA: 8                             # Alpha for SlowFast
     BETA_INV: 8                          # Beta inverse for SlowFast
@@ -10,7 +10,7 @@ DATA:
   TEST_DIR: "datasets/frames/test_videos"
   ANNOTATIONS: "datasets/annotations/json_test"
   BATCH_SIZE: 1                          # Batch size for inference
-  NUM_WORKERS: 2                         # Data loader workers
+  NUM_WORKERS: 0                         # Data loader workers
   INPUT:
     MEAN: [0.45, 0.45, 0.45]             # Normalization mean
     STD: [0.225, 0.225, 0.225]           # Normalization standard deviation

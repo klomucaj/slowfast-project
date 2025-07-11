@@ -1,23 +1,23 @@
 MODEL:
   ARCH: "slowfast"                       # Model architecture
-  NUM_CLASSES: 10                        # Number of classes in the dataset
+  NUM_CLASSES: 16                       # Number of classes in the dataset
   SLOWFAST:
-    ALPHA: 8                             # Alpha for SlowFast
-    BETA_INV: 8                          # Beta inverse for SlowFast
+    ALPHA: 4                             # Alpha for SlowFast
+    BETA_INV: 4                          # Beta inverse for SlowFast
     FAST_FRAME_RATE: 1                    # Frames per second for the Fast pathway (1fps)
     SLOW_FRAME_RATE: 1                    # Frames per second for the Slow pathway (1fps)
 
 DATA:
   VAL_DIR: "datasets/frames/val_videos"
   VAL_ANNOTATIONS: "datasets/annotations/json_val"
-  BATCH_SIZE: 4                          # Batch size for validation (same as training)
-  NUM_WORKERS: 2                         # Data loader workers
+  BATCH_SIZE: 2                          # Batch size for validation (same as training)
+  NUM_WORKERS: 0                         # Data loader workers
   INPUT:
     MEAN: [0.45, 0.45, 0.45]             # Normalization mean
     STD: [0.225, 0.225, 0.225]           # Normalization standard deviation
 
 CHECKPOINT:
-  LOAD_PATH: "experiments/checkpoints/slowfast_epoch_50.pth"  # Load the checkpoint for validation
+  LOAD_PATH: "experiments/checkpoints/slowfast_epoch_16.pth"  # Load the checkpoint for validation
 
 LOGGING:
   LOG_DIR: "experiments/logs"           # Directory for validation logs

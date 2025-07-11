@@ -15,5 +15,5 @@ missing_annotations = frame_videos - json_videos
 missing_frames = json_videos - frame_videos
 
 # Print results
-print(f"🚨 Videos with no JSON annotations: {missing_annotations}")
-print(f"🚨 JSON files without frames: {missing_frames}")
+print(f"Videos with no JSON annotations: {missing_annotations}")
+print(f"JSON files without frames: {missing_frames}")
