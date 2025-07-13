@@ -14,7 +14,7 @@ NUM_CLASSES = 16
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # === LOAD MODEL ===
-print("⚙️ Loading trained model...")
+print(" Loading trained model...")
 model = SlowFastModel(num_classes=NUM_CLASSES)
 checkpoint = torch.load(CHECKPOINT, map_location=DEVICE)
 model.load_state_dict(checkpoint)
@@ -38,13 +38,13 @@ for f in sorted(os.listdir(FRAME_DIR)):
         img = Image.open(os.path.join(FRAME_DIR, f)).convert("RGB")
         all_frames[frame_num] = transform(img)
     except Exception as e:
-        print(f"⚠️ Skipping frame {f}: {e}")
+        print(f" Skipping frame {f}: {e}")
 
 if not all_frames:
-    print("🚫 No frames found in folder.")
+    print(" No frames found in folder.")
     exit()
 
-print(f"📦 Loaded {len(all_frames)} frames from '{FRAME_DIR}'\n")
+print(f" Loaded {len(all_frames)} frames from '{FRAME_DIR}'\n")
 
 # === LOAD ANNOTATION FILES ===
 annotation_files = [f for f in os.listdir(ANNOTATION_DIR) if f.endswith(".json")]
@@ -60,9 +60,9 @@ for ann_file in annotation_files:
             else:
                 segments.append(data)
         except Exception as e:
-            print(f"⚠️ Failed to load {ann_file}: {e}")
+            print(f" Failed to load {ann_file}: {e}")
 
-print(f"📄 Loaded {len(segments)} annotated segments from '{ANNOTATION_DIR}'\n")
+print(f" Loaded {len(segments)} annotated segments from '{ANNOTATION_DIR}'\n")
 
 # === RUN INFERENCE ===
 predicted_segments = []
@@ -73,7 +73,7 @@ for idx, seg in enumerate(segments):
     text = seg.get("text", "unknown")
 
     if start is None or end is None:
-        print(f"⚠️ Skipping segment {idx} (missing start or end frame)")
+        print(f" Skipping segment {idx} (missing start or end frame)")
         continue
 
     frame_ids = list(range(start, end + 1))
@@ -89,7 +89,7 @@ for idx, seg in enumerate(segments):
         slow_tensor = torch.stack([all_frames[frame_ids[i]] for i in slow_ids])
         fast_tensor = torch.stack([all_frames[frame_ids[i]] for i in fast_ids])
     except KeyError as e:
-        print(f"⚠️ Missing frame for segment {idx}: {e}")
+        print(f" Missing frame for segment {idx}: {e}")
         continue
 
     x_slow = slow_tensor.permute(1, 0, 2, 3).unsqueeze(0).to(DEVICE)
@@ -115,4 +115,4 @@ output_path = "inference/predicted_results.json"
 with open(output_path, "w") as f:
     json.dump(predicted_segments, f, indent=2)
 
-print(f"\n✅ Prediction results saved to: {output_path}")
+print(f"\n Prediction results saved to: {output_path}")
