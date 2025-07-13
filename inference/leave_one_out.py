@@ -30,9 +30,9 @@ def move_leaveout_video(video_id):
     shutil.move(src_annot_path, dst_annot_path)
     shutil.move(src_frame_dir, dst_frame_dir)
 
-    print(f"✅ Left out video: {video_id}")
-    print(f"✔ Moved annotation to: {dst_annot_path}")
-    print(f"✔ Moved frames to: {dst_frame_dir}")
+    print(f" Left out video: {video_id}")
+    print(f" Moved annotation to: {dst_annot_path}")
+    print(f" Moved frames to: {dst_frame_dir}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Leave one video out for validation.")
